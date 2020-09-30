@@ -1,18 +1,60 @@
 module.exports = canvas = () => {
   const canvas = document.getElementById('canvas')
   const context = canvas.getContext("2d")
-  const space = 8
-  const gutter = 4*space
-
+  const space = 10
+  const gutter = 4 * space
+  
   let start 
   let width
   let height
   let columns
   let rows
   let grid = []
+  
+  const coord = (x, y) => { return { x, y } }
 
-  const newMatrix = (rows, columns) => {
-    let matrix = typeof grid !== "undefined" ? grid.slice(0,rows).map(col => col.slice(0,columns)) : [] // preserve existing elements?
+  const brush = {
+    size: coord(space,space),
+    position: false,
+    state: {
+      mousedown: false
+    }
+  }
+
+  const updateWindowDimensions = () => {
+    canvas.setAttribute('width', window.innerWidth - gutter)
+    canvas.setAttribute('height', window.innerHeight - gutter)
+    width = canvas.width
+    height = canvas.height 
+    columns = Math.floor((width-2*space) / space)
+    rows = Math.floor((height-2*space) / space)
+    grid = matrix(rows, columns)
+    render()
+  }
+
+  const handleMouseDown = () => {
+    brush.state.mousedown = true
+  }
+  
+  const handleMouseUp = () => {
+    brush.state.mousedown = false
+  }
+
+  const handleMouseOver = (e) => {
+    // convert to cell position
+    brush.position = coord(Math.floor(e.clientX/10), Math.floor(e.clientY/10)) 
+  }
+
+  const handleMouseLeave = () => {
+    brush.position = false
+  }
+
+  const handleMouseEnter = (e) => {
+    brush.position = coord(e.clientX, e.clientY)
+  }
+  
+  const matrix = (rows, columns) => {
+    let matrix = grid.length ? grid.slice(0,rows).map(col => col.slice(0,columns)) : [] // preserve existing elements?
     for (r=0; r<=rows; r++) {
       for (c=0; c<=columns; c++) {
         if (typeof matrix[r] === "undefined")
@@ -22,17 +64,6 @@ module.exports = canvas = () => {
       }
     }
     return matrix
-  }
-
-  const updateWindowDimensions = () => {
-    canvas.setAttribute('width', window.innerWidth - gutter)
-    canvas.setAttribute('height', window.innerHeight - gutter)
-    width = canvas.width
-    height = canvas.height 
-    columns = Math.floor((width-2*space) / space) + 1
-    rows = Math.floor((height-2*space) / space) + 1
-    grid = newMatrix(rows, columns)
-    render()
   }
 
   const cellState = (r,c) => {
@@ -88,7 +119,8 @@ module.exports = canvas = () => {
     if (typeof start === "undefined")
       start = timestamp
     
-    if (timestamp-start >= 120) {
+    if (timestamp-start >= 150) {
+      
       // clear screen
       context.clearRect(0,0, width, height)
       // loop through rows in the matrix (between first and last)
@@ -102,16 +134,38 @@ module.exports = canvas = () => {
           if (r == 1 || r == grid.length-1 || c == 1 || c == rowLength-1) { 
             context.fillStyle = 'black'
           } else {
+            if (brush.state.mousedown) {
+              grid[brush.position.y-2][brush.position.x-2].state = !grid[brush.position.y-2][brush.position.x-2].state
+            }
             const neighborCells = cellState(r,c)
             updateCell(currentCell, neighborCells)
             if (currentCell.state) {
-              neighborCells == 2 ? context.fillStyle = 'green' : context.fillStyle = 'lightgreen'
+              neighborCells == 2 ? context.fillStyle = 'purple' : context.fillStyle = 'hotpink'
             } else {
               context.fillStyle = 'black'
             }
           }
           context.fillRect(c*space, r*space, space, space)
         }
+      }
+      if (brush.state.mousedown) {
+        context.fillStyle = 'red'
+        const brushPos = coord(brush.position.x*space-space*2, brush.position.y*space-space*2)
+        context.fillRect(
+          brushPos.x,
+          brushPos.y,
+          space, 
+          space
+        )
+      } else {
+        context.fillStyle = 'yellow'
+        const brushPos = coord(brush.position.x*space-space*2, brush.position.y*space-space*2)
+        context.fillRect(
+          brushPos.x,
+          brushPos.y,
+          space, 
+          space
+        )
       }
       start = timestamp
     }
@@ -121,6 +175,10 @@ module.exports = canvas = () => {
   const render = () => {
     window.requestAnimationFrame(draw)
   }
+  
   window.addEventListener('load', updateWindowDimensions)
   window.addEventListener('resize', updateWindowDimensions)
+  window.addEventListener('mousedown', handleMouseDown)
+  window.addEventListener('mouseup', handleMouseUp)
+  canvas.addEventListener('mousemove', handleMouseOver)
 }
