@@ -1,9 +1,9 @@
 const canvas = () => {
   const canvas = document.getElementById('canvas')
   const context = canvas.getContext("2d")
-  const space = 10
+  const space = 12
   const gutter = 2 * space
-  const probabilityOfLife = .15
+  const probabilityOfLife = .1
   
   let start 
   let width
@@ -15,11 +15,11 @@ const canvas = () => {
   const coord = (x, y) => { return { x, y } }
 
   const coinFlip = () => {
-    return Math.floor(Math.random()*2) - 1
+    return Math.floor(Math.random()*2)
   }
 
   const schroedingersBox = () => {
-    return Math.random() < probabilityOfLife ? true : false
+    return Math.random() < probabilityOfLife
   }
 
   const brush = {
@@ -39,16 +39,12 @@ const canvas = () => {
   }
 
   const handleMouseOver = (e) => {
-    // convert to cell position 
+    // convert to cell position
     brush.position = coord(Math.floor(e.clientX/space)-1, Math.floor(e.clientY/space)-2) 
   }
 
   const handleMouseLeave = () => {
     brush.position = false
-  }
-
-  const handleMouseEnter = (e) => {
-    brush.position = coord(Math.floor(e.clientX/space)-1, Math.floor(e.clientY/space)-2) 
   }
   
   const matrix = (rows, columns) => {
@@ -58,7 +54,10 @@ const canvas = () => {
         if (typeof matrix[r] === "undefined")
           matrix[r] = []
         if (typeof matrix[r][c] === "undefined")
-          matrix[r][c] = { state: schroedingersBox() }
+          matrix[r][c] = { 
+            state: schroedingersBox(),
+            nextState: false
+          }
       }
     }
     return matrix
@@ -69,7 +68,7 @@ const canvas = () => {
     const row = grid[r]
     const rowPrev = r > 0 ? grid[r-1] : grid[gridLength-1]
     const rowNext = r < gridLength-1 ? grid[r+1] : grid[0]
-    // todo: add logic for wrapping bottom-left to top-right cell, etc...
+
     const neighbors = {
       cellMiddleLeft: c == 0 ? row[row.length-1].state : row[c-1].state,
       cellMiddleRight: c >= gridLength ? row[0].state : typeof row[c+1] !== "undefined" ? row[c+1].state : false,
@@ -98,19 +97,31 @@ const canvas = () => {
       // cell is living...
       if (currentCell.state) {
         // keep cell alive
-        neighborCells == 2 || neighborCells == 3 && ( currentCell.state = currentCell.state )
+        neighborCells == 2 || neighborCells == 3 && ( currentCell.nextState = true )
 
         // die by underpopulation
-        neighborCells < 2 && ( currentCell.state = false )
+        neighborCells < 2 && ( currentCell.nextState = false )
 
         // death by overpopulation
-        neighborCells > 3 && ( currentCell.state = false )
+        neighborCells > 3 && ( currentCell.nextState = false )
         
       } else if (neighborCells == 3) {
-        // migration!
-        currentCell.state = true
+        // life!
+        currentCell.nextState = true
       }
     }
+    // highlight living cells
+    if (typeof currentCell !== "undefined" && currentCell.state) {
+      neighborCells == 2 ? context.fillStyle = 'violet' : context.fillStyle = 'purple'
+    } else {
+      context.fillStyle = coinFlip() ? '#000' : '#222'
+    }
+
+    // assign border color (border cells retain state)
+    if (r == 0 || r == grid.length-1 || c == 0 || c == grid[0].length-1) 
+      context.fillStyle = 'lightgreen'  
+      
+    context.fillRect(c*space, r*space, space, space)
   }
 
   const paintBrush = () => {
@@ -132,39 +143,41 @@ const canvas = () => {
     if (typeof start === "undefined")
       start = timestamp
     
-    if (timestamp-start >= 150) {
+    if (timestamp-start >= 60) {
       // clear screen
       context.clearRect(0,0, width, height)
-      // loop through rows in the matrix (between first and last)
+      
+      // loop through rows in the matrix (between first and last)   
       for (r=0; r<grid.length; r++) {
         const row = grid[r]
-        const rowLength = row.length
 
         // loop through columns in row (between first and last)
-        for (c=0; c<rowLength; c++) {
+        for (c=0; c<row.length; c++) {
           const currentCell = row[c]; 
-          // flip state on mousedown
-          if (brush.state.mousedown) {
-            grid[brush.position.y][brush.position.x].state = !grid[brush.position.y][brush.position.x].state
-            // grid[brush.position.y-2][brush.position.x-2].state = true
-          }
           const neighborCells = cellState(r,c)
+
+          // calculate state of cell in next iteration
           updateCell(currentCell, neighborCells)
-
-          if (typeof currentCell !== "undefined" && currentCell.state) {
-            neighborCells == 2 ? context.fillStyle = 'purple' : context.fillStyle = 'violet'
-          } else {
-            // context.fillStyle = 'black'
-            context.fillStyle = coinFlip() ? '#000' : '#111'
-          }
-
-          if (r == 0 || r == grid.length-1 || c == 0 || c == rowLength-1) 
-            context.fillStyle = 'lightgreen'  
-
-          context.fillRect(c*space, r*space, space, space)
         }
       }
+
+      // update cell state
+      for (r=0; r<grid.length; r++) {
+        const row = grid[r]
+        for (c=0; c<row.length; c++) {
+          const currentCell = row[c]; 
+          currentCell.state = currentCell.nextState
+        }
+      }
+
+      // handle mouse activity
+      brush.state.mousedown && 
+        ( brush.position.y > 0 && brush.position.y < grid.length ) && 
+        ( brush.position.x > 0 && brush.position.x < grid[0].length ) &&
+        ( grid[brush.position.y][brush.position.x].state = !grid[brush.position.y][brush.position.x].state )
+      
       paintBrush()
+
       start = timestamp
     }
     render()
