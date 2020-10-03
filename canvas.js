@@ -41,7 +41,7 @@ const canvas = () => {
 
   const handleMouseOver = (e) => {
     // convert to cell position
-    brush.position = coord(Math.floor(e.clientX/space)-1, Math.floor(e.clientY/space)-2) 
+    brush.position = coord(Math.floor(e.clientX/space)-1, Math.floor(e.clientY/space)-1) 
   }
   
   const handleKeypress = () => {
@@ -120,7 +120,7 @@ const canvas = () => {
     }
 
     // assign border color (border cells retain state)
-    if (r == 0 || r == grid.length-1 || c == 0 || c == grid[0].length-1) 
+    if (!paused && ( r == 0 || r == grid.length-1 || c == 0 || c == grid[0].length-1 )) 
       context.fillStyle = 'lightgreen'  
       
     context.fillRect(c*space, r*space, space, space)
