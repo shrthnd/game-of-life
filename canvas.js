@@ -3,7 +3,7 @@ const canvas = () => {
   const context = canvas.getContext("2d")
   const space = 12
   const gutter = 2 * space
-  const probabilityOfLife = .2
+  const probabilityOfLife = .5
   
   let start 
   let paused
@@ -116,7 +116,7 @@ const canvas = () => {
     if (typeof currentCell !== "undefined" && currentCell.state) {
       neighborCells == 2 ? context.fillStyle = 'violet' : context.fillStyle = 'purple'
     } else {
-      context.fillStyle = coinFlip() ? '#000' : '#222'
+      context.fillStyle = coinFlip() ? '#000' : '#111'
     }
 
     // assign border color (border cells retain state)
@@ -141,6 +141,11 @@ const canvas = () => {
         space
       )
     }
+    // handle mousedown activity
+    brush.state.mousedown && 
+      ( brush.position.y >= 0 && brush.position.y < grid.length ) && 
+      ( brush.position.x >= 0 && brush.position.x < grid[0].length ) &&
+      ( grid[brush.position.y][brush.position.x].nextState = true )
   }
   
   const draw = (timestamp) => {
@@ -151,11 +156,11 @@ const canvas = () => {
       // clear screen
       context.clearRect(0,0, width, height)
       
-      // loop through rows in the matrix (between first and last)   
+      // loop through rows in the matrix
       for (r=0; r<grid.length; r++) {
         const row = grid[r]
 
-        // loop through columns in row (between first and last)
+        // loop through columns in row
         for (c=0; c<row.length; c++) {
           const currentCell = row[c]; 
           const neighborCells = cellState(r,c)
@@ -174,12 +179,6 @@ const canvas = () => {
         }
       }
 
-      // handle mouse activity
-      brush.state.mousedown && 
-        ( brush.position.y > 0 && brush.position.y < grid.length ) && 
-        ( brush.position.x > 0 && brush.position.x < grid[0].length ) &&
-        ( grid[brush.position.y][brush.position.x].nextState = true )
-      
       paintBrush()
 
       start = timestamp
