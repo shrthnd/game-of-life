@@ -3,7 +3,7 @@ const canvas = () => {
   const context = canvas.getContext("2d")
   const space = 12
   const gutter = 2 * space
-  const probabilityOfLife = .5
+  const probabilityOfLife = 0.5 
   
   let start 
   let paused
@@ -67,18 +67,33 @@ const canvas = () => {
   const cellState = (r,c) => {
     const gridLength = grid.length
     const row = grid[r]
+    const rowLength = row.length
     const rowPrev = r > 0 ? grid[r-1] : grid[gridLength-1]
+    const rowPrevLength = rowPrev.length
     const rowNext = r < gridLength-1 ? grid[r+1] : grid[0]
+    const rowNextLength = rowNext.length 
 
     const neighbors = {
-      cellMiddleLeft: c == 0 ? row[row.length-1].state : row[c-1].state,
-      cellMiddleRight: c >= gridLength ? row[0].state : typeof row[c+1] !== "undefined" ? row[c+1].state : false,
-      cellTopLeft: c > 0 ? rowPrev[c-1].state : rowPrev[rowPrev.length-1].state,
-      cellTopRight: c < rowPrev.length-1 ? rowPrev[c+1].state : rowPrev[0].state,
-      cellTopCenter: typeof rowPrev[c] !== "undefined" ? rowPrev[c].state : false,
-      cellBottomLeft: c > 0 ? rowNext[c-1].state : rowNext[rowNext.length-1].state,
-      cellBottomRight: c < rowNext.length-1 ? rowNext[c+1].state : rowNext[0].state,
-      cellBottomCenter: typeof rowNext[c] !== "undefined" ? rowNext[c].state : false
+      cellMiddleLeft: c == 0 ? 
+        row[rowLength-1].state : 
+        row[c-1].state,
+      cellMiddleRight: c >= rowLength-1 ? 
+        row[0].state : 
+        row[c+1].state,
+      cellTopLeft: c > 0 ? 
+        rowPrev[c-1].state : 
+        rowPrev[rowPrevLength-1].state,
+      cellTopRight: c < rowPrevLength-1 ? 
+        rowPrev[c+1].state : 
+        rowPrev[0].state,
+      cellTopCenter: rowPrev[c].state,
+      cellBottomLeft: c > 0 ? 
+        rowNext[c-1].state : 
+        rowNext[rowNextLength-1].state,
+      cellBottomRight: c < rowNextLength-1 ? 
+        rowNext[c+1].state : 
+        rowNext[0].state,
+      cellBottomCenter: rowNext[c].state
     }
 
     let livingNeighbors = 0
@@ -97,11 +112,11 @@ const canvas = () => {
     if (!paused && typeof currentCell !== "undefined" ) {
       // cell is living...
       if (currentCell.state) {
-        // keep cell alive
-        neighborCells == 2 || neighborCells == 3 ? currentCell.nextState = true : null
-
         // die by underpopulation
         neighborCells < 2 ? currentCell.nextState = false : null
+
+        // keep cell alive
+        neighborCells == 2 || neighborCells == 3 ? currentCell.nextState = true : null
 
         // death by overpopulation
         neighborCells > 3 ? currentCell.nextState = false : null
@@ -117,6 +132,10 @@ const canvas = () => {
       neighborCells == 2 ? context.fillStyle = 'violet' : context.fillStyle = 'purple'
     } else {
       context.fillStyle = coinFlip() ? '#000' : '#111'
+      // if (neighborCells == 2)
+      //   context.fillStyle = 'green'
+      // if (neighborCells == 3)
+      //   context.fillStyle = 'limegreen'
     }
 
     // assign border color (border cells retain state)
@@ -128,12 +147,14 @@ const canvas = () => {
 
   const paintBrush = () => {
     const brushPos = coord(brush.position.x*space, brush.position.y*space)
+    const rowCount = grid.length
+    const colCount = grid[0].length
     if (brush.state.mousedown) {
       context.fillStyle = 'lime'
     } else {
       context.fillStyle = 'yellow'
     }
-    if (brush.position.y < grid.length && brush.position.x < grid[0].length) {
+    if (brush.position.y < rowCount && brush.position.x < colCount) {
       context.fillRect(
         brushPos.x,
         brushPos.y,
@@ -143,8 +164,8 @@ const canvas = () => {
     }
     // handle mousedown activity
     brush.state.mousedown && 
-      ( brush.position.y >= 0 && brush.position.y < grid.length ) && 
-      ( brush.position.x >= 0 && brush.position.x < grid[0].length ) &&
+      ( brush.position.y >= 0 && brush.position.y < rowCount ) && 
+      ( brush.position.x >= 0 && brush.position.x < colCount ) &&
       ( grid[brush.position.y][brush.position.x].nextState = true )
   }
   
