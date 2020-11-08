@@ -1,11 +1,12 @@
-# Game of Life
+# ![DNA](dna.svg "DNA") Game of Life
 
-Responsive, canvas-based implementation of Conway's Game of Life running in Electron. [Demo](https://repl.it/@helpfuldev/UnusualTrafficPatterns)
+Responsive, canvas-based implementation of Conway's Game of Life running in Electron.
 
-Desktop: press _any_ key to pause simulation. Mousedown to draw cells. 
+[Demo](https://unusualtrafficpatterns.helpfuldev.repl.co/) (⚠️ Seizure warning), [IDE](https://repl.it/@helpfuldev/UnusualTrafficPatterns) 
 
+Press _any_ key to pause simulation. Mousedown to draw cells.
 
-## To Use
+## Getting Started
 
 To clone and run this repository you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer. From your command line:
 
@@ -13,7 +14,7 @@ To clone and run this repository you'll need [Git](https://git-scm.com) and [Nod
 # Clone this repository
 git clone https://github.com/shrthnd/game-of-life
 # Go into the repository
-cd electron-quick-start
+cd game-of-life
 # Install dependencies
 npm install
 # Run the app
