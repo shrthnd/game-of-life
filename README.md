@@ -2,8 +2,6 @@
 
 Responsive, canvas-based implementation of Conway's Game of Life running in Electron.
 
-[Demo](https://unusualtrafficpatterns.helpfuldev.repl.co/) (⚠️ Seizure warning), [IDE](https://repl.it/@helpfuldev/UnusualTrafficPatterns) 
-
 Press _any_ key to pause simulation. Mousedown to draw cells.
 
 ## Getting Started

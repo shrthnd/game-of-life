@@ -11,9 +11,9 @@ const canvas = () => {
   // environment variables 
   const canvas = document.getElementById('canvas')
   const context = canvas.getContext("2d")
-  const space = 10
+  const space = 12
   const gutter = 2 * space
-  const probabilityOfLife = 0.5
+  const probabilityOfLife = 0.25
   const brush = {
     size: coord(space,space),
     position: false,
